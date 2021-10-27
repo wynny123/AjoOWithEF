@@ -46,7 +46,6 @@ namespace AjoOWithEF
                     .AllowAnyMethod()
                     .AllowAnyHeader());
             });
-
             services.AddAutoMapper(typeof(MapperInitializer));
             services.AddControllers();
         }
