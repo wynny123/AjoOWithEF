@@ -1,5 +1,7 @@
 using AjoOWithEF.Configurations;
 using AjoOWithEF.Data;
+using AjoOWithEF.IRepository;
+using AjoOWithEF.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -47,7 +49,12 @@ namespace AjoOWithEF
                     .AllowAnyHeader());
             });
             services.AddAutoMapper(typeof(MapperInitializer));
-            services.AddControllers();
+
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            services.AddControllers().AddNewtonsoftJson(op =>
+                op.SerializerSettings.ReferenceLoopHandling =
+                    Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
