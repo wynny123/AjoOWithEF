@@ -18,6 +18,7 @@ namespace AjoOWithEF.Configurations
             CreateMap<Account, CreateAccountDTO>().ReverseMap();
             CreateMap<Loan, LoanDTO>().ReverseMap();
             CreateMap<Loan, CreateLoanDTO>().ReverseMap();
+            CreateMap<ApiUser, UserDTO>().ReverseMap();
         }
     }
 }

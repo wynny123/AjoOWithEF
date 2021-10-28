@@ -1,6 +1,7 @@
 ﻿using AjoOWithEF.IRepository;
 using AjoOWithEF.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,6 +25,7 @@ namespace AjoOWithEF.Controllers
             _logger = logger;
             _mapper = mapper;
         }
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -43,7 +45,7 @@ namespace AjoOWithEF.Controllers
                 return StatusCode(500, "Internal Server Error, try again later");
             }
         }
-
+        [Authorize]
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]

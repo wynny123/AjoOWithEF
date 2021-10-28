@@ -25,6 +25,8 @@ namespace AjoOWithEF.Controllers
             _mapper = mapper;
         }
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllMembers()
         {
             try
@@ -43,6 +45,8 @@ namespace AjoOWithEF.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetMember(int id)
         {
             try
