@@ -32,4 +32,9 @@ namespace AjoOWithEF.Models
 
     }
 
+    public class UpdateMemberDTO : CreateMemberDTO
+    {
+       // public IList<CreateLoanDTO> Loans { get; set; }
+    }
+
 }

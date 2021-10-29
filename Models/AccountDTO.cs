@@ -27,4 +27,9 @@ namespace AjoOWithEF.Models
         public int Id { get; set; }
         public MemberDTO Member { get; set; }
     }
+
+    public class UpdateAccountDTO : CreateAccountDTO
+    {
+       
+    }
 }
