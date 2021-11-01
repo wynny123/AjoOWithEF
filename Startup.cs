@@ -20,6 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AspNetCoreRateLimit;
+
 namespace AjoOWithEF
 {
     public class Startup
@@ -36,8 +38,13 @@ namespace AjoOWithEF
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
             );
 
+            services.AddMemoryCache();
 
+            services.ConfigureRateLimiting();
+            services.AddHttpContextAccessor();
 
+            services.ConfigureHttpCacheHeaders();
+            services.AddResponseCaching();
             services.AddAuthentication();
             services.ConfigureIdentity();
             services.ConfigureJWT(Configuration);
@@ -48,6 +55,8 @@ namespace AjoOWithEF
                     .AllowAnyMethod()
                     .AllowAnyHeader());
             });
+
+            services.ConfigureVersioning();
             services.AddAutoMapper(typeof(MapperInitializer));
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
@@ -57,7 +66,12 @@ namespace AjoOWithEF
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AjoOWithEF", Version = "v1" });
             });
-            services.AddControllers().AddNewtonsoftJson(op =>
+            services.AddControllers(config => {
+                config.CacheProfiles.Add("120SecondsDuration", new CacheProfile
+                {
+                    Duration = 120
+                });
+                }).AddNewtonsoftJson(op =>
                 op.SerializerSettings.ReferenceLoopHandling =
                     Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }
@@ -70,8 +84,17 @@ namespace AjoOWithEF
             }
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AjoOWithEF v1"));
+
+            app.ConfigureExceptionHandler();
+
             app.UseHttpsRedirection();
+
             app.UseCors("AllowAll");
+
+            app.UseResponseCaching();
+            app.UseHttpCacheHeaders();
+
+            //app.UseIpRateLimiting();
 
             app.UseRouting();
 

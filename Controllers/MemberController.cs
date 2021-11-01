@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -29,21 +30,21 @@ namespace AjoOWithEF.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetAllMembers()
-        {
-            try
-            {
-                var members =  await _unitOfWork.Members.GetAll();
+        public async Task<IActionResult> GetAllMembers([FromQuery] RequestParams requestParams)
+        {    //All the Try-Catch are removed because of the global error handler middleware "ConfigureExceptionHandler"  
+             //try
+             //{
+            var members =  await _unitOfWork.Members.GetPagedList(requestParams);
                 var results = _mapper.Map<IList<MemberDTO>>(members);
                 return Ok (results);
 
-            }
-            catch (Exception ex)
-            {
+            //}
+            //catch (Exception ex)
+            //{
 
-                _logger.LogError(ex, $"Something went wrong in the{ nameof(GetAllMembers)}");
-                return StatusCode(500, "Internal Server Error, try again later");
-            }
+            //    _logger.LogError(ex, $"Something went wrong in the{ nameof(GetAllMembers)}");
+            //    return StatusCode(500, "Internal Server Error, try again later");
+            //}
         }
 
         [HttpGet("{id:int}", Name = "GetMember")]
@@ -51,19 +52,13 @@ namespace AjoOWithEF.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetMember(int id)
         {
-            try
-            {
-                var member = await _unitOfWork.Members.Get(q => q.Id == id, new List<string> { "Accounts","Loans" });
+            
+            
+                var member = await _unitOfWork.Members.Get(q => q.Id == id, include: q => q.Include(X =>  X.Loans));
                 var result = _mapper.Map<MemberDTO>(member);
                 return Ok(result);
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the{ nameof(GetMember)}");
-                return StatusCode(500, "Internal Server Error, try again later");
-            }
+            
         }
 
         //[HttpGet("{string: firstName}")]
@@ -96,20 +91,14 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Post attempt in the {nameof(CreateMember)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
+            
                 var member = _mapper.Map<Member>(memberDTO);
                 await _unitOfWork.Members.Insert(member);
                 await _unitOfWork.Save();
 
                 return CreatedAtRoute("GetMember", new { id = member.Id }, member);
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(CreateMember)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
+           
         }
 
         [Authorize(Roles = "Administrator")]
@@ -124,8 +113,8 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Update attempt in the {nameof(UpdateMember)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
+            
                 var member = await _unitOfWork.Members.Get(q => q.Id == id);
                 if(member == null)
                 {
@@ -137,14 +126,7 @@ namespace AjoOWithEF.Controllers
                 await _unitOfWork.Save();
                 return NoContent();
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(UpdateMember)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            } 
-
+           
         }
 
         [Authorize(Roles = "Administrator")]
@@ -159,8 +141,8 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Delete attempt in the {nameof(DeleteMember)}");
                 return BadRequest();
             }
-            try
-            {
+            
+            
                 var member = await _unitOfWork.Members.Get(q => q.Id == id);
                 if (member == null)
                 {
@@ -172,13 +154,7 @@ namespace AjoOWithEF.Controllers
                 await _unitOfWork.Save();
                 return NoContent();
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(DeleteMember)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
+           
 
         }
 

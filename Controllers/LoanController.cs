@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -52,19 +53,13 @@ namespace AjoOWithEF.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetLoan(int id)
         {
-            try
-            {
-                var loan = await _unitOfWork.Loans.Get(q => q.Id == id, new List<string> { "Member" });
+            
+            
+                var loan = await _unitOfWork.Loans.Get(q => q.Id == id, include: q => q.Include(X => X.Member));
                 var result = _mapper.Map<LoanDTO>(loan);
                 return Ok(result);
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the{ nameof(GetLoan)}");
-                return StatusCode(500, "Internal Server Error, try again later");
-            }
+           
         }
 
         [Authorize(Roles = "Administrator")]
@@ -79,20 +74,13 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Post attempt in the {nameof(CreateLoan)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
                 var loan = _mapper.Map<Loan>(loanDTO);
                 await _unitOfWork.Loans.Insert(loan);
                 await _unitOfWork.Save();
 
                 return CreatedAtRoute("GetLoan", new { id = loan.Id }, loan);
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(CreateLoan)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
+           
         }
 
         [Authorize(Roles = "Administrator")]
@@ -107,8 +95,7 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Update attempt in the {nameof(UpdateLoan)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
                 var loan = await _unitOfWork.Loans.Get(q => q.Id == id);
                 if (loan == null)
                 {
@@ -120,13 +107,8 @@ namespace AjoOWithEF.Controllers
                 await _unitOfWork.Save();
                 return NoContent();
 
-            }
-            catch (Exception ex)
-            {
+           
 
-                _logger.LogError(ex, $"Something went wrong in the {nameof(UpdateLoan)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
 
         }
 
@@ -142,8 +124,8 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Delete attempt in the {nameof(DeleteLoan)}");
                 return BadRequest();
             }
-            try
-            {
+            
+            
                 var loan = await _unitOfWork.Loans.Get(q => q.Id == id);
                 if (loan == null)
                 {
@@ -155,13 +137,7 @@ namespace AjoOWithEF.Controllers
                 await _unitOfWork.Save();
                 return NoContent();
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(DeleteLoan)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
+            
 
         }
     }

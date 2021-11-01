@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -32,19 +33,13 @@ namespace AjoOWithEF.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllAccounts()
         {
-            try
-            {
+            
+            
                 var accounts = await _unitOfWork.Accounts.GetAll();
                 var results = _mapper.Map<IList<AccountDTO>>(accounts);
                 return Ok(results);
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the{ nameof(GetAllAccounts)}");
-                return StatusCode(500, "Internal Server Error, try again later");
-            }
+           
         }
         [Authorize]
         [HttpGet("{id:int}", Name = "GetAccount")]
@@ -52,19 +47,11 @@ namespace AjoOWithEF.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAccount(int id)
         {
-            try
-            {
-                var account = await _unitOfWork.Accounts.Get(q => q.Id == id, new List<string> { "Member" });
+           
+                var account = await _unitOfWork.Accounts.Get(q => q.Id == id, include: q => q.Include(X => X.Member));
                 var result = _mapper.Map<AccountDTO>(account);
                 return Ok(result);
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the{ nameof(GetAccount)}");
-                return StatusCode(500, "Internal Server Error, try again later");
-            }
         }
 
         [Authorize(Roles = "Administrator")]
@@ -79,20 +66,12 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Post attempt in the {nameof(CreateAccount)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
                 var account = _mapper.Map<Account>(accountDTO);
                 await _unitOfWork.Accounts.Insert(account);
                 await _unitOfWork.Save();
 
                 return CreatedAtRoute("GetAccount", new { id = account.Id }, account);
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(CreateAccount)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
         }
 
         [Authorize(Roles = "Administrator")]
@@ -107,8 +86,8 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Update attempt in the {nameof(UpdateAccount)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
+           
                 var account = await _unitOfWork.Accounts.Get(q => q.Id == id);
                 if (account == null)
                 {
@@ -120,14 +99,7 @@ namespace AjoOWithEF.Controllers
                 await _unitOfWork.Save();
                 return NoContent();
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(UpdateAccount)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
-
+            
         }
 
         [Authorize(Roles = "Administrator")]
@@ -142,8 +114,8 @@ namespace AjoOWithEF.Controllers
                 _logger.LogError($"Invalid Delete attempt in the {nameof(DeleteAccount)}");
                 return BadRequest();
             }
-            try
-            {
+            
+            
                 var account = await _unitOfWork.Accounts.Get(q => q.Id == id);
                 if (account == null)
                 {
@@ -155,13 +127,7 @@ namespace AjoOWithEF.Controllers
                 await _unitOfWork.Save();
                 return NoContent();
 
-            }
-            catch (Exception ex)
-            {
-
-                _logger.LogError(ex, $"Something went wrong in the {nameof(DeleteAccount)}");
-                return StatusCode(500, "Internal Server Error, Please try again later");
-            }
+           
 
         }
     }
